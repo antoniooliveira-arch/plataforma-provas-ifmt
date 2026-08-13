@@ -1,78 +1,81 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, datetime } from "drizzle-orm/mysql-core";
+import { pgTable, integer, pgEnum, serial, text, timestamp, varchar, boolean } from "drizzle-orm/pg-core";
 
-export const users = mysqlTable("users", {
-  id: int("id").autoincrement().primaryKey(),
+export const roles = pgEnum("role", ["user", "admin", "teacher", "student"]);
+export const questionType = pgEnum("type", ["multiple_choice", "true_false"]);
+
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin", "teacher", "student"]).default("student").notNull(),
+  role: roles("role").default("student").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
-export const classes = mysqlTable("classes", {
-  id: int("id").autoincrement().primaryKey(),
+export const classes = pgTable("classes", {
+  id: serial("id").primaryKey(),
   name: varchar("name", { length: 160 }).notNull(),
   code: varchar("code", { length: 40 }).notNull().unique(),
   period: varchar("period", { length: 80 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
-export const subjects = mysqlTable("subjects", {
-  id: int("id").autoincrement().primaryKey(),
+export const subjects = pgTable("subjects", {
+  id: serial("id").primaryKey(),
   name: varchar("name", { length: 160 }).notNull(),
   code: varchar("code", { length: 40 }).notNull().unique(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
-export const exams = mysqlTable("exams", {
-  id: int("id").autoincrement().primaryKey(),
+export const exams = pgTable("exams", {
+  id: serial("id").primaryKey(),
   title: varchar("title", { length: 200 }).notNull(),
   description: text("description"),
-  subjectId: int("subjectId").notNull(),
-  classId: int("classId").notNull(),
-  teacherId: int("teacherId").notNull(),
-  startsAt: datetime("startsAt").notNull(),
-  endsAt: datetime("endsAt").notNull(),
-  durationMinutes: int("durationMinutes").notNull().default(60),
-  status: mysqlEnum("status", ["draft", "scheduled", "closed"]).default("draft").notNull(),
+  subjectId: integer("subjectId").notNull(),
+  classId: integer("classId").notNull(),
+  teacherId: integer("teacherId").notNull(),
+  startsAt: timestamp("startsAt").notNull(),
+  endsAt: timestamp("endsAt").notNull(),
+  durationMinutes: integer("durationMinutes").notNull().default(60),
+  status: varchar("status", { length: 64 }).default("student").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
-export const questions = mysqlTable("questions", {
-  id: int("id").autoincrement().primaryKey(),
-  authorId: int("authorId").notNull(),
+export const questions = pgTable("questions", {
+  id: serial("id").primaryKey(),
+  authorId: integer("authorId").notNull(),
   statement: text("statement").notNull(),
-  type: mysqlEnum("type", ["multiple_choice", "true_false"]).notNull(),
+  type: questionType("type").notNull(),
   options: text("options"),
   correctAnswer: varchar("correctAnswer", { length: 100 }).notNull(),
-  points: int("points").notNull().default(1),
+  points: integer("points").notNull().default(1),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
-export const examQuestions = mysqlTable("examQuestions", {
-  id: int("id").autoincrement().primaryKey(),
-  examId: int("examId").notNull(),
-  questionId: int("questionId").notNull(),
-  position: int("position").notNull().default(1),
+export const examQuestions = pgTable("examQuestions", {
+  id: serial("id").primaryKey(),
+  examId: integer("examId").notNull(),
+  questionId: integer("questionId").notNull(),
+  position: integer("position").notNull().default(1),
 });
 
-export const attempts = mysqlTable("attempts", {
-  id: int("id").autoincrement().primaryKey(),
-  examId: int("examId").notNull(),
-  studentId: int("studentId").notNull(),
+export const attempts = pgTable("attempts", {
+  id: serial("id").primaryKey(),
+  examId: integer("examId").notNull(),
+  studentId: integer("studentId").notNull(),
   startedAt: timestamp("startedAt").defaultNow().notNull(),
   submittedAt: timestamp("submittedAt"),
-  score: int("score"),
+  score: integer("score"),
   completed: boolean("completed").notNull().default(false),
 });
 
-export const answers = mysqlTable("answers", {
-  id: int("id").autoincrement().primaryKey(),
-  attemptId: int("attemptId").notNull(),
-  questionId: int("questionId").notNull(),
+export const answers = pgTable("answers", {
+  id: serial("id").primaryKey(),
+  attemptId: integer("attemptId").notNull(),
+  questionId: integer("questionId").notNull(),
   answer: varchar("answer", { length: 100 }),
   isCorrect: boolean("isCorrect"),
 });
